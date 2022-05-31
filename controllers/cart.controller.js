@@ -51,17 +51,21 @@ const addProductToCart = catchAsync(async (req, res, next) => {
 const updateProductInCart = catchAsync(async (req, res, next) => {
   const { productId, newQty } = req.body;
   const { sessionUser } = req;
-
-
+  //Searching cart active
   const cartActive = await Cart.findOne({ where: { status: 'active', userId: sessionUser.id } });
-
+  //if cart active don´t exist
   if (!cartActive) {
     return next(new AppError('You need to create a Cart', 400));
   }
-
+  //Product To Update
   const pToUpdate = await ProductInCart.findOne({
     where: { status: 'active', cartId: cartActive.id, productId },
   });
+  //Search failed
+  if(!pToUpdate){
+    return next(new AppError('product not found, try to search another id', 400));
+  }
+  //Remove product by Quantity=0
   if(newQty===0){
      pToUpdate.update({status:'removed', quantity: newQty });      
   }
@@ -69,14 +73,30 @@ const updateProductInCart = catchAsync(async (req, res, next) => {
     pToUpdate.update({ quantity: newQty });
   }
 
-  // const orders = await Order.findAll({
-  //     where: { status: 'active', userId: sessionUser.id },
-  //     include: [{model: Meal, include: [{model: Restaurant}]}] ,
-  //  });
   res.status(200).json({
     status: 'done!',
     pToUpdate,
   });
+});
+
+const removeProductFromCart = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { sessionUser } = req;
+  //Searching cart active
+  const cartActive = await Cart.findOne({ where: { status: 'active', userId: sessionUser.id } });
+  const pToDelete = await ProductInCart.findOne({
+    where: { status: 'active', cartId: cartActive.id, productId: id },
+  });
+  //Searching error
+  if(!pToDelete){
+    return next(new AppError('product not found, try to search another id', 400));
+  }
+  pToDelete.update({status:'removed', quantity: newQty });      
+  res.status(200).json({
+    status: 'done!',
+    pToDelete,
+  });
+
 });
 
 const purchaseCart = catchAsync(async (req, res, next) => {
@@ -96,12 +116,17 @@ const purchaseCart = catchAsync(async (req, res, next) => {
       //Updating Status of ProductInCart
       product.update({status:'purchased'})
       
+      //Returning the value of subtotals
+      //Quantity --- Price --- Subtotal
+      //   3           50        150
       return(productInStore.price*product.quantity)
   })
+    //Calculate the total
    const total = price.reduce(x,y => x+y,0)
-
+   console.log(total)
+   //Cart Purchased
    cartActive.update({status: 'purchased'})
-
+   //Create Order
    const newOrder = await Order.create({userId: sessionUser.id, cartId: cartActive.id, totalPrice: total})
 
    res.status(200).josn({
@@ -110,9 +135,9 @@ const purchaseCart = catchAsync(async (req, res, next) => {
    })
 });
 
-const removeProductFromCart = catchAsync(async (req, res, next) => {});
 
-module.exports({
+
+module.exports = ({
   addProductToCart,
   updateProductInCart,
   purchaseCart,

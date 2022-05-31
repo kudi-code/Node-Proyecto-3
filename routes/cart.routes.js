@@ -6,7 +6,8 @@ const {
   updateProductInCart,
   purchaseCart,
   removeProductFromCart,
-} = require('../controllers/orders.controller');
+} = require('../controllers/cart.controller');
+const { validateQtyOk } = require('../middlewares/cart.middlewares');
 
 // Middlewares
 const { protectToken } = require('../middlewares/users.middlewares');
@@ -15,9 +16,9 @@ const router = express.Router();
 
 router.use(protectToken);
 
-router.post('/add-product', addProductToCart);
+router.post('/add-product', validateQtyOk,addProductToCart);
 
-router.patch('/update-cart', updateProductInCart);
+router.patch('/update-cart', validateQtyOk,updateProductInCart);
 
 router.post('/purchase', purchaseCart);
 
