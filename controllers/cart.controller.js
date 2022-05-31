@@ -106,7 +106,7 @@ const purchaseCart = catchAsync(async (req, res, next) => {
 
   const products = await ProductInCart.findAll({where: {status:'active', cartId: cartActive.id}})
 
-  const price = products.map(product => {
+  const price = products.map(async product => {
       //Searching productsInCart in Products
       const productInStore = await Product.findOne({where:{status: 'active', id: product.productId}})
 
