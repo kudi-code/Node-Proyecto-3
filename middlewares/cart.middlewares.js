@@ -1,6 +1,11 @@
+//Utils
+const { AppError } = require('../utils/appError');
 const { catchAsync } = require('../utils/catchAsync');
+
+//Models
 const { Cart } = require('../models/cart.model');
 const { Product } = require('../models/product.model');
+
 
 const validateQtyOk = catchAsync(async (req, res, next) => {
   const { quantity, newQty, productId } = req.body;

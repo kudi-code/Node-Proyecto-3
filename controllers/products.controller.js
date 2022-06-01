@@ -68,6 +68,7 @@ const deleteProduct = catchAsync(async (req, res, next) => {
 });
 
 const getAllCategories = catchAsync(async (req, res, next) => {
+  console.log("Categories get")
   const categories = await Category.findAll({ where: { status: 'active' } });
   res.status(200).json({
     categories,

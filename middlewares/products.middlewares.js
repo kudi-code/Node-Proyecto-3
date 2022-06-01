@@ -15,8 +15,6 @@ const protectProductOwner = catchAsync(async (req, res, next) => {
 
   //sending the product searched
   req.product = product;
-
-
   // If the ids are equal, the request pass
   next();
 });

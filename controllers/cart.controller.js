@@ -14,15 +14,15 @@ const addProductToCart = catchAsync(async (req, res, next) => {
   var message = [];
 
   var cartActive = await Cart.findOne({ where: { status: 'active', userId: sessionUser.id } });
-
+  console.log((cartActive))
   if (!cartActive) {
     cartActive = await Cart.create({ userId: sessionUser.id });
-    message.push('Creating new Cart');
+    message.push('Creating new Cart');    
   }
 
   const product = await ProductInCart.findOne({
-    where: productId,
-    cartId: cartActive.id,
+    where:{ productId,
+    cartId: cartActive.id,}
   });
   //If the product exist in this cart
   if (product) {
@@ -80,18 +80,19 @@ const updateProductInCart = catchAsync(async (req, res, next) => {
 });
 
 const removeProductFromCart = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
+  const { productId } = req.params;
   const { sessionUser } = req;
+  // console.log(id);
   //Searching cart active
   const cartActive = await Cart.findOne({ where: { status: 'active', userId: sessionUser.id } });
   const pToDelete = await ProductInCart.findOne({
-    where: { status: 'active', cartId: cartActive.id, productId: id },
+    where: { status: 'active', cartId: cartActive.id, productId },
   });
   //Searching error
   if(!pToDelete){
     return next(new AppError('product not found, try to search another id', 400));
   }
-  pToDelete.update({status:'removed', quantity: newQty });      
+  pToDelete.update({status:'removed'});      
   res.status(200).json({
     status: 'done!',
     pToDelete,
@@ -106,7 +107,7 @@ const purchaseCart = catchAsync(async (req, res, next) => {
 
   const products = await ProductInCart.findAll({where: {status:'active', cartId: cartActive.id}})
 
-  const price = products.map(async product => {
+  const PromisePrice = products.map(async product => {
       //Searching productsInCart in Products
       const productInStore = await Product.findOne({where:{status: 'active', id: product.productId}})
 
@@ -121,15 +122,18 @@ const purchaseCart = catchAsync(async (req, res, next) => {
       //   3           50        150
       return(productInStore.price*product.quantity)
   })
+  //Solving promises
+  const priceResolved = await Promise.all(PromisePrice);
+  console.log(priceResolved)
     //Calculate the total
-   const total = price.reduce(x,y => x+y,0)
+   const total = priceResolved.reduce((x,y) => x+y,0)
    console.log(total)
    //Cart Purchased
    cartActive.update({status: 'purchased'})
    //Create Order
    const newOrder = await Order.create({userId: sessionUser.id, cartId: cartActive.id, totalPrice: total})
 
-   res.status(200).josn({
+   res.status(200).json({
        status: 'done!',
        newOrder
    })

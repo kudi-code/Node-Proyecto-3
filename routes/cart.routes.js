@@ -16,12 +16,12 @@ const router = express.Router();
 
 router.use(protectToken);
 
+router.delete('/:productId', removeProductFromCart)
+
 router.post('/add-product', validateQtyOk,addProductToCart);
 
 router.patch('/update-cart', validateQtyOk,updateProductInCart);
 
 router.post('/purchase', purchaseCart);
-
-router.delete('/:productId', removeProductFromCart);
 
 module.exports = { cartRouter: router };

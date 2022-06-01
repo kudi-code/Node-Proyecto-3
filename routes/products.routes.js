@@ -7,6 +7,9 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
+  getAllCategories,
+  createCategory,
+  updateCategory,
 } = require('../controllers/products.controller');
 
 // Middlewares
@@ -21,9 +24,18 @@ const router = express.Router();
 
 router.get('/', getAllProducts);
 
+router.get("/categories", getAllCategories)
+
+
 router.get('/:id', getProductById);
 
+
+
+
 router.use(protectToken);
+
+router.post('/categories' , createCategory)
+router.patch('/categories/:id' , updateCategory)
 
 router.post('/', createProductValidations, checkValidations, createProduct);
 
